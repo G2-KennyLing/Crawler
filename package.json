@@ -9,7 +9,9 @@
   "author": "quang phu",
   "license": "ISC",
   "dependencies": {
+    "bootstrap": "^5.0.0-beta3",
     "cheerio": "^1.0.0-rc.3",
+    "json2csv": "^5.0.6",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"
   }
