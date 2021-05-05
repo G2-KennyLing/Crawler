@@ -3,8 +3,11 @@ const request = require("request-promise");
 const fs = require("fs");
 const { Parser } = require("json2csv");
 
+
 const crawlPage = (key) => {
     let num = -1;
+    let sumProd = 0;
+    let link = key;
     const crawler = async(key) => {
         try {
             request(
@@ -24,7 +27,7 @@ const crawlPage = (key) => {
                                 .src;
                             const Link_Image2 = "http:" +
                                 ($(el).find(" div.product_image a div.image__container img.secondary")).get().map((pro) => { return pro.attribs.src });
-                            const Link =
+                            let Link =
                                 "https://99shirt.com" +
                                 $(el)
                                 .find(" a")
@@ -32,7 +35,7 @@ const crawlPage = (key) => {
                                 .map((pro) => {
                                     return pro.attribs.href;
                                 });
-
+                            Link = Link.slice(0, Link.indexOf("?"));
                             data.push({
                                 Title,
                                 Link_Image1,
@@ -60,11 +63,14 @@ const crawlPage = (key) => {
                             { label: "Link_Image_1", value: "Link_Image_1" },
                             { label: "Link", value: "Link" }
                         ];
+                        sumProd += data.length;
+
                         const parser = new Parser(fields);
                         const csv = parser.parse(data);
                         fs.appendFileSync("newmoon_import_template.csv", csv);
                         if (num == +page) return 0;
                         num++;
+
                         crawler(key + '&page=' + num);
 
                     } else {
@@ -72,9 +78,12 @@ const crawlPage = (key) => {
                     }
                 }
             );
+            console.log("Crawling page:" + link + "&page=" + num);
+            console.log("Have " + sumProd + " products crawled from:" + link);
         } catch (error) {
             console.log(error);
         }
+
     };
     crawler(key);
 }
@@ -88,7 +97,8 @@ const input = readFileInput();
 const main = async(input) => {
     try {
         for (key of input) {
-            await crawlPage(key);
+
+            crawlPage(key);
         }
     } catch (error) {
         console.log(error)

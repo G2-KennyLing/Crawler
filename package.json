@@ -4,7 +4,7 @@
     "description": "crawl data",
     "main": "index.js",
     "scripts": {
-        "start": "nodemon --inspect server.js"
+        "start": "node --inspect server.js"
     },
     "author": "Linh",
     "license": "ISC",
@@ -12,7 +12,6 @@
         "bootstrap": "^5.0.0-beta3",
         "cheerio": "^1.0.0-rc.3",
         "json2csv": "^5.0.6",
-        "nodemon": "^2.0.7",
         "request": "^2.88.2",
         "request-promise": "^4.2.6"
     }
