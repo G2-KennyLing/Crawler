@@ -3,13 +3,29 @@ const request = require("request-promise");
 const fs = require("fs");
 const { Parser } = require("json2csv");
 
-
+let csvf = Math.random();
 
 const crawlPage = async(key) => {
     let num = 0;
+    let page = '';
     let link = key;
-    let data = [];
+    let sumPro = 0;
+    request(key, (error, response, html) => {
+        if (!error && response.statusCode == 200) {
+            const $ = cheerio.load(html);
+
+            const paging = $(".paginate span ").text().split('');
+            for (let i = paging.length - 1; page.length <= 2; i--) {
+                if (+paging[i] % 1 == 0) {
+                    page += paging[i];
+                }
+
+            }
+            page = page.split('').reverse().join('');
+        }
+    })
     const crawler = async(key) => {
+        let data = [];
         try {
             await request.defaults({ 'proxy': "http://30c0fd28ae:LbSYfc4J@162.244.144.79:4444" })
                 (
@@ -18,7 +34,6 @@ const crawlPage = async(key) => {
                         if (key.length == 0) return console.log("Link is not found");
                         if (!error && response.statusCode == 200) {
                             const $ = cheerio.load(html);
-                            let dtt = [];
                             $(".product-wrap").each(async(index, el) => {
                                 const Title = $(el)
                                     .find(" a div.product-details span.title")
@@ -49,6 +64,7 @@ const crawlPage = async(key) => {
                                     tags: '',
                                     category: '',
                                 }
+
                                 await request.defaults({
                                     'headers': { 'User-Agent': 'Mozilla/5.0' }
                                 })(Link, async(error, response, html) => {
@@ -59,36 +75,23 @@ const crawlPage = async(key) => {
                                         const Link_Image4 = "http:" + $("div.gallery-cell ").eq(3).find("img").get().map((pro) => { return pro.attribs.src });
                                         obj.Link_Image3 = Link_Image3;
                                         obj.Link_Image4 = Link_Image4;
-
+                                        await data.push(obj);
 
                                     } else console.log(error)
                                 })
-                                await dtt.push(obj);
-                                await data.push(obj);
-
 
                             });
-                            let page = '';
-                            const paging = $(".paginate span ").text().split('');
-                            for (let i = paging.length - 1; page.length <= 2; i--) {
-                                if (+paging[i] % 1 == 0) {
 
-                                    page += paging[i];
-                                }
-
-                            }
-                            page = page.split('').reverse().join('');
-                            if (dtt.length == 0) {
+                            if (num == +page) {
                                 return 0;
                             }
 
-                            if (num == +page) return 0;
                             num++;
-                            console.log("Hi")
-                            console.log(data);
-                            await crawler(key + '&page=' + num);
 
-                            return data;
+                            await crawler(key + '&page=' + num);
+                            writeFile(data, csvf);
+                            sumPro += data.length;
+                            console.log("Have " + sumPro + " products crawled from:" + link);
                         } else {
                             console.log(error);
                         }
@@ -101,16 +104,7 @@ const crawlPage = async(key) => {
         }
 
     };
-    crawler(key).then((data) => {
-        const parser = new Parser();
-        console.log("Hi")
-        const csv = parser.parse(data);
-        fs.appendFileSync("newmoon_import_template.csv", csv);
-        console.log("Have " + data.length + " products crawled from:" + link);
-    }).catch((error) => {
-        console.log(error);
-    })
-
+    await crawler(key);
 }
 
 const readFileInput = () => {
@@ -118,15 +112,25 @@ const readFileInput = () => {
     const arr = data.split('\n');
     return arr;
 }
+
+const writeFile = (data, csvf) => {
+
+
+    const parser = new Parser();
+    const csv = parser.parse(data);
+    fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(csv));
+}
 const input = readFileInput();
-const main = async(input) => {
+const main = async(input, csvf) => {
+    let dt = []
     try {
         for (key of input) {
+            csvf++;
+            dt += await crawlPage(key);
 
-            crawlPage(key);
         }
     } catch (error) {
         console.log(error)
     }
 }
-main(input);
+main(input, csvf);
