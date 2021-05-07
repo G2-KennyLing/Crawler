@@ -1,2 +1,1 @@
 https://99shirt.com/search?type=product&q=pain*
-https://99shirt.com/search?type=product&q=shirt*
