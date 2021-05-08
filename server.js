@@ -1,7 +1,7 @@
 const cheerio = require("cheerio");
 const request = require("request-promise");
 const fs = require("fs");
-const { Parser } = require("json2csv");
+const { parseAsync } = require("json2csv");
 
 let csvf = Math.random();
 
@@ -25,7 +25,6 @@ const crawlPage = async(key) => {
         }
     })
     const crawler = async(key) => {
-        let data = [];
         try {
             await request.defaults({ 'proxy': "http://30c0fd28ae:LbSYfc4J@162.244.144.79:4444" })
                 (
@@ -34,6 +33,8 @@ const crawlPage = async(key) => {
                         if (key.length == 0) return console.log("Link is not found");
                         if (!error && response.statusCode == 200) {
                             const $ = cheerio.load(html);
+                            const dtt = [];
+                            let data = [];
                             $(".product-wrap").each(async(index, el) => {
                                 const Title = $(el)
                                     .find(" a div.product-details span.title")
@@ -76,6 +77,7 @@ const crawlPage = async(key) => {
                                         obj.Link_Image3 = Link_Image3;
                                         obj.Link_Image4 = Link_Image4;
                                         await data.push(obj);
+                                        await dtt.push(obj);
 
                                     } else console.log(error)
                                 })
@@ -90,12 +92,13 @@ const crawlPage = async(key) => {
 
                             await crawler(key + '&page=' + num);
                             writeFile(data, csvf);
-                            sumPro += data.length;
+                            sumPro += dtt.length;
                             console.log("Have " + sumPro + " products crawled from:" + link);
                         } else {
                             console.log(error);
                         }
                     }
+
                 );
             console.log("Crawling page:" + link + "&page=" + num);
 
@@ -105,32 +108,66 @@ const crawlPage = async(key) => {
 
     };
     await crawler(key);
+
 }
 
-const readFileInput = () => {
-    const data = fs.readFileSync('./input.txt', 'utf-8');
+const readFileInput = (path) => {
+    const data = fs.readFileSync(path, 'utf-8');
     const arr = data.split('\n');
     return arr;
 }
 
-const writeFile = (data, csvf) => {
+const writeFile = async(data, csvf) => {
+    try {
+        const fields = ["Title",
+            "Link_Image1",
+            "Link_Image2",
+            "Link_Image3",
+            "Link_Image4",
+            "SKU",
+            "Link",
+            "mmolazi_type",
+            "tags",
+            "category"
+        ];
+        const opts = { fields };
+        parseAsync(data, opts)
+            .then(csv => {
+                const arr = csv.split('\n');
+                arr.shift();
+                const str = '\n' + arr.join('\n');
+                fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
 
+            })
+            .catch(err => console.log(err))
+    } catch (error) {
+        console.log(error)
+    }
 
-    const parser = new Parser();
-    const csv = parser.parse(data);
-    fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(csv));
 }
-const input = readFileInput();
+const input = readFileInput("./input.txt");
 const main = async(input, csvf) => {
-    let dt = []
     try {
         for (key of input) {
-            csvf++;
-            dt += await crawlPage(key);
+
+            await (crawlPage(key));
+
 
         }
     } catch (error) {
         console.log(error)
     }
 }
+const str = ["Title",
+    "Link_Image1",
+    "Link_Image2",
+    "Link_Image3",
+    "Link_Image4",
+    "SKU",
+    "Link",
+    "mmolazi_type",
+    "tags",
+    "category"
+].join(",");
+fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
 main(input, csvf);
