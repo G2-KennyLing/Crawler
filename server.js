@@ -13,7 +13,7 @@ const reqJson = async(link) => {
         let check = true;
         while (check) {
             await request.defaults({
-                'headers': { 'User-Agent': 'Mozilla/5.0' }
+                'headers': { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36' }
             }).get(key + page, (error, response, body) => {
                 if (key.length == 0) console.log("Link is not found");
                 if (!error && response.statusCode == 200) {
