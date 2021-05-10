@@ -5,112 +5,54 @@ const { parseAsync } = require("json2csv");
 
 let csvf = Math.random();
 
-const crawlPage = async(key) => {
-    let num = 0;
-    let page = '';
-    let link = key;
-    let sumPro = 0;
-    request(key, (error, response, html) => {
-        if (!error && response.statusCode == 200) {
-            const $ = cheerio.load(html);
-
-            const paging = $(".paginate span ").text().split('');
-            for (let i = paging.length - 1; page.length <= 2; i--) {
-                if (+paging[i] % 1 == 0) {
-                    page += paging[i];
-                }
-
-            }
-            page = page.split('').reverse().join('');
-        }
-    })
-    const crawler = async(key) => {
-        try {
-            await request.defaults({ 'proxy': "http://30c0fd28ae:LbSYfc4J@162.244.144.79:4444" })
-                (
-                    key,
-                    async(error, response, html) => {
-                        if (key.length == 0) return console.log("Link is not found");
-                        if (!error && response.statusCode == 200) {
-                            const $ = cheerio.load(html);
-                            const dtt = [];
-                            let data = [];
-                            $(".product-wrap").each(async(index, el) => {
-                                const Title = $(el)
-                                    .find(" a div.product-details span.title")
-                                    .text();
-                                const Link_Image1 =
-                                    "http:" +
-                                    $(el).find("div.product_image a div.image__container img").data().src;
-                                const Link_Image2 = "http:" +
-                                    ($(el).find(" div.product_image a div.image__container img.secondary")).get().map((pro) => { return pro.attribs.src });
-                                let Link =
-                                    "https://99shirt.com" +
-                                    $(el)
-                                    .find(" a")
-                                    .get()
-                                    .map((pro) => {
-                                        return pro.attribs.href;
-                                    });
-                                Link = Link.slice(0, Link.indexOf("?"));
-                                const obj = {
-                                    Title,
-                                    Link_Image1,
-                                    Link_Image2,
-                                    Link_Image3: '',
-                                    Link_Image4: '',
-                                    SKU: '',
-                                    Link,
-                                    mmolazi_type: '',
-                                    tags: '',
-                                    category: '',
-                                }
-
-                                await request.defaults({
-                                    'headers': { 'User-Agent': 'Mozilla/5.0' }
-                                })(Link, async(error, response, html) => {
-
-                                    if (response.statusCode == 200) {
-                                        const $ = cheerio.load(html);
-                                        const Link_Image3 = "http:" + $("div.gallery-cell ").eq(2).find("img").get().map((pro) => { return pro.attribs.src });
-                                        const Link_Image4 = "http:" + $("div.gallery-cell ").eq(3).find("img").get().map((pro) => { return pro.attribs.src });
-                                        obj.Link_Image3 = Link_Image3;
-                                        obj.Link_Image4 = Link_Image4;
-                                        await data.push(obj);
-                                        await dtt.push(obj);
-
-                                    } else console.log(error)
-                                })
-
-                            });
-
-                            if (num == +page) {
-                                return 0;
-                            }
-
-                            num++;
-
-                            await crawler(key + '&page=' + num);
-                            writeFile(data, csvf);
-                            sumPro += dtt.length;
-                            console.log("Have " + sumPro + " products crawled from:" + link);
-                        } else {
-                            console.log(error);
+const reqJson = async(link) => {
+    try {
+        const data = [];
+        let page = 1;
+        let key = link + '/products.json?limit=1000&page=';
+        let check = true;
+        while (check) {
+            await request.defaults({
+                'headers': { 'User-Agent': 'Mozilla/5.0' }
+            }).get(key + page, (error, response, body) => {
+                if (key.length == 0) console.log("Link is not found");
+                if (!error && response.statusCode == 200) {
+                    if (JSON.parse(body).products.length == 0) check = false;
+                    for (let product of JSON.parse(body).products) {
+                        const obj = {
+                            Title: '',
+                            Link_Image1: '',
+                            Link_Image2: '',
+                            Link_Image3: '',
+                            Link_Image4: '',
+                            SKU: '',
+                            Link: '',
+                            mmolazi_type: '',
+                            tags: '',
+                            category: '',
                         }
+                        obj.Title = product.title;
+                        obj.Link_Image1 = product.images[0] ? product.images[0].src : '';
+                        obj.Link_Image2 = product.images[1] ? product.images[1].src : '';
+                        obj.Link_Image3 = product.images[2] ? product.images[2].src : '';
+                        obj.Link_Image4 = product.images[3] ? product.images[3].src : '';
+                        obj.Link = link + "/products/" + product.handle;
+                        obj.tags = product.tags + "";
+                        data.push(obj);
                     }
+                    if (data.length == 0) check = false;
+                    console.log("Crawling page:" + key + page);
+                    page++;
+                } else console.log(error)
+            })
 
-                );
-            console.log("Crawling page:" + link + "&page=" + num);
-
-        } catch (error) {
-            console.log(error);
         }
-
-    };
-    await crawler(key);
-
+        console.log("Have " + data.length + " products crawled from:" + link);
+        writeFile(data, csvf);
+    } catch (error) {
+        console.log(error)
+    }
 }
-
 const readFileInput = (path) => {
     const data = fs.readFileSync(path, 'utf-8');
     const arr = data.split('\n');
@@ -119,7 +61,7 @@ const readFileInput = (path) => {
 
 const writeFile = async(data, csvf) => {
     try {
-        const fields = ["Title",
+        const str = ["Title",
             "Link_Image1",
             "Link_Image2",
             "Link_Image3",
@@ -129,9 +71,9 @@ const writeFile = async(data, csvf) => {
             "mmolazi_type",
             "tags",
             "category"
-        ];
-        const opts = { fields };
-        parseAsync(data, opts)
+        ].join(",");
+        fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
+        parseAsync(data)
             .then(csv => {
                 const arr = csv.split('\n');
                 arr.shift();
@@ -150,24 +92,11 @@ const main = async(input, csvf) => {
     try {
         for (key of input) {
 
-            await (crawlPage(key));
-
-
+            await (reqJson(key));
         }
     } catch (error) {
         console.log(error)
     }
 }
-const str = ["Title",
-    "Link_Image1",
-    "Link_Image2",
-    "Link_Image3",
-    "Link_Image4",
-    "SKU",
-    "Link",
-    "mmolazi_type",
-    "tags",
-    "category"
-].join(",");
-fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
+
 main(input, csvf);
