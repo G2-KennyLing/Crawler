@@ -3,7 +3,7 @@ const request = require("request-promise");
 const fs = require("fs");
 const { parseAsync } = require("json2csv");
 
-let csvf = Math.random();
+let csvf = (new Date()).getTime();
 
 const reqJson = async(link) => {
     try {
@@ -45,7 +45,6 @@ const reqJson = async(link) => {
                     page++;
                 } else console.log(error)
             })
-
         }
         console.log("Have " + data.length + " products crawled from:" + link);
         writeFile(data, csvf);
@@ -72,7 +71,7 @@ const writeFile = async(data, csvf) => {
             "tags",
             "category"
         ].join(",");
-        fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
+        fs.appendFileSync("newmoon_import_template_" + csvf + ".csv", new Buffer.from(str))
         parseAsync(data)
             .then(csv => {
                 const arr = csv.split('\n');
