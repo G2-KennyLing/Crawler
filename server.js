@@ -77,7 +77,7 @@ const writeFile = async(data, csvf) => {
                 const arr = csv.split('\n');
                 arr.shift();
                 const str = '\n' + arr.join('\n');
-                fs.appendFileSync("newmoon_import_template" + csvf + ".csv", new Buffer.from(str))
+                fs.appendFileSync("newmoon_import_template_" + csvf + ".csv", new Buffer.from(str))
 
             })
             .catch(err => console.log(err))
