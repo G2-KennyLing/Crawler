@@ -4,7 +4,7 @@
     "description": "crawl data",
     "main": "index.js",
     "scripts": {
-        "start": "node --inspect server.js"
+        "start": "node --inspect crawler.js"
     },
     "author": "Linh",
     "license": "ISC",
