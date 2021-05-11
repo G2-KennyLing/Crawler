@@ -4,6 +4,8 @@ const fs = require("fs");
 const { parseAsync } = require("json2csv");
 
 let csvf = (new Date()).getTime();
+const userAgent = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) ", "AppleWebKit/537.36 (KHTML, like Gecko)", "Chrome/66.0.3359.181 Safari/537.36"];
+const proxy = ["http://30c0fd28ae:LbSYfc4J@162.244.144.79:4444", "http://1a64c2daf4:NkSDGHft@192.3.180.190:4444", "http://1a64c2daf4:NkSDGHft@192.3.203.187:4444", "http://1a64c2daf4:NkSDGHft@23.254.82.102:4444"];
 
 const reqJson = async(link) => {
     try {
@@ -13,38 +15,39 @@ const reqJson = async(link) => {
         let check = true;
         while (check) {
             await request.defaults({
-                'headers': { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.181 Safari/537.36' }
-            }).get(key + page, (error, response, body) => {
-                if (key.length == 0) console.log("Link is not found");
-                if (!error && response.statusCode == 200) {
-                    if (JSON.parse(body).products.length == 0) check = false;
-                    for (let product of JSON.parse(body).products) {
-                        const obj = {
-                            Title: '',
-                            Link_Image1: '',
-                            Link_Image2: '',
-                            Link_Image3: '',
-                            Link_Image4: '',
-                            SKU: '',
-                            Link: '',
-                            mmolazi_type: '',
-                            tags: '',
-                            category: '',
+                    'headers': { 'User-Agent': userAgent[Math.floor(Math.random() * userAgent.length)] }
+                }, { 'proxy': proxy[Math.floor(Math.random() * userAgent.length)] })
+                .get(key + page, (error, response, body) => {
+                    if (key.length == 0) console.log("Link is not found");
+                    if (!error && response.statusCode == 200) {
+                        if (JSON.parse(body).products.length == 0) check = false;
+                        for (let product of JSON.parse(body).products) {
+                            const obj = {
+                                Title: '',
+                                Link_Image1: '',
+                                Link_Image2: '',
+                                Link_Image3: '',
+                                Link_Image4: '',
+                                SKU: '',
+                                Link: '',
+                                mmolazi_type: '',
+                                tags: '',
+                                category: '',
+                            }
+                            obj.Title = product.title;
+                            obj.Link_Image1 = product.images[0] ? product.images[0].src : '';
+                            obj.Link_Image2 = product.images[1] ? product.images[1].src : '';
+                            obj.Link_Image3 = product.images[2] ? product.images[2].src : '';
+                            obj.Link_Image4 = product.images[3] ? product.images[3].src : '';
+                            obj.Link = link + "/products/" + product.handle;
+                            obj.tags = product.tags + "";
+                            data.push(obj);
                         }
-                        obj.Title = product.title;
-                        obj.Link_Image1 = product.images[0] ? product.images[0].src : '';
-                        obj.Link_Image2 = product.images[1] ? product.images[1].src : '';
-                        obj.Link_Image3 = product.images[2] ? product.images[2].src : '';
-                        obj.Link_Image4 = product.images[3] ? product.images[3].src : '';
-                        obj.Link = link + "/products/" + product.handle;
-                        obj.tags = product.tags + "";
-                        data.push(obj);
-                    }
-                    if (data.length == 0) check = false;
-                    console.log("Crawling page:" + key + page);
-                    page++;
-                } else console.log(error)
-            })
+                        if (data.length == 0) check = false;
+                        console.log("Crawling page:" + key + page);
+                        page++;
+                    } else console.log(error)
+                })
         }
         console.log("Have " + data.length + " products crawled from:" + link);
         writeFile(data, csvf);
