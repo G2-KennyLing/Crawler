@@ -19,7 +19,7 @@ const crawlerPageCollection = async(link) => {
                 }, { 'proxy': proxy[Math.floor(Math.random() * userAgent.length)] })
                 .get(urlInput + page, (error, response, body) => {
                     if (link.length == 0) console.log("Link is not found");
-                    if (!error && response.statusCode == 200) {
+                    if (!error && response.statusCode >= 200 && response.statusCode <= 300) {
                         if (JSON.parse(body).products.length == 0) check = false;
                         for (let product of JSON.parse(body).products) {
                             const obj = {
@@ -62,7 +62,7 @@ const crawlerPageSeach = async(link) => {
     let urlInput = link;
     let sumPro = 0;
     request(link, (error, response, html) => {
-        if (!error && response.statusCode == 200) {
+        if (!error && response.statusCode >= 200 && response.statusCode <= 300) {
             const $ = cheerio.load(html);
             const paging = $(".paginate span ").text().split('');
             for (let i = paging.length - 1; i > 0; i--) {
@@ -84,7 +84,7 @@ const crawlerPageSeach = async(link) => {
                     link,
                     async(error, response, html) => {
                         if (link.length == 0) return console.log("Link is not found");
-                        if (!error && response.statusCode == 200) {
+                        if (!error && response.statusCode >= 200 && response.statusCode <= 300) {
                             const $ = cheerio.load(html);
                             $(".product-wrap").each(async(index, el) => {
                                 const Title = $(el)
@@ -120,7 +120,7 @@ const crawlerPageSeach = async(link) => {
                                 await request.defaults({
                                     'headers': { 'User-Agent': userAgent[Math.floor(Math.random() * userAgent.length)] }
                                 }, { 'proxy': proxy[Math.floor(Math.random() * userAgent.length)] })(Link, async(error, response, html) => {
-                                    if (response.statusCode == 200) {
+                                    if (response.statusCode >= 200 && response.statusCode <= 300) {
                                         const $ = cheerio.load(html);
                                         const Link_Image3 = "http:" + $("div.gallery-cell ").eq(2).find("img").get().map((pro) => { return pro.attribs.src });
                                         const Link_Image4 = "http:" + $("div.gallery-cell ").eq(3).find("img").get().map((pro) => { return pro.attribs.src });
@@ -163,7 +163,7 @@ const CrawlerProduct = async(link) => {
             }, { 'proxy': proxy[Math.floor(Math.random() * userAgent.length)] })
             .get(urlInput, (error, response, body) => {
                 if (link.length == 0) console.log("Link is not found");
-                if (!error && response.statusCode == 200) {
+                if (!error && response.statusCode >= 200 && response.statusCode <= 300) {
                     let product = JSON.parse(body).product;
                     const obj = {
                         Title: '',
