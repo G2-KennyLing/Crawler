@@ -3,9 +3,16 @@ const request = require("request-promise");
 const fs = require("fs");
 const { parseAsync } = require("json2csv");
 
-let csvf = (new Date()).getTime();
-const userAgent = ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) ", "AppleWebKit/537.36 (KHTML, like Gecko)", "Chrome/66.0.3359.181 Safari/537.36"];
-const proxy = ["http://30c0fd28ae:LbSYfc4J@162.244.144.79:4444", "http://1a64c2daf4:NkSDGHft@192.3.180.190:4444", "http://1a64c2daf4:NkSDGHft@192.3.203.187:4444", "http://1a64c2daf4:NkSDGHft@23.254.82.102:4444"];
+let suffix = (new Date()).getTime();
+
+const readFileInput = (path) => {
+    const data = fs.readFileSync(path, 'utf-8');
+    const arr = data.split('\n');
+    return arr;
+}
+
+const userAgent = readFileInput('./userAgent.txt');
+const proxy = readFileInput('./proxy.txt')
 
 const crawlerPageCollection = async(link) => {
     try {
@@ -56,7 +63,7 @@ const crawlerPageCollection = async(link) => {
                 })
         }
         console.log(`Have  ${data.length } products crawled from: ${link}`);
-        writeFile(data, csvf);
+        writeFile(data, suffix);
     } catch (error) {
         console.log(error)
     }
@@ -142,7 +149,7 @@ const crawlerPageSeach = async(link) => {
                 }
             )
     }
-    writeFile(data, csvf);
+    writeFile(data, suffix);
     console.log(`Have ${data.length} products crawled from: ${link}`);
 
 }
@@ -181,7 +188,7 @@ const CrawlerProduct = async(link) => {
                     console.log(`Crawling page: ${link}`);
                     if (data.length == 0) return console.log("Page not have data");
                     console.log(`Have  ${data.length } products crawled from: ${link}`);
-                    writeFile(data, csvf);
+                    writeFile(data, suffix);
                 } else console.log(error)
             })
     } catch (error) {
@@ -189,13 +196,8 @@ const CrawlerProduct = async(link) => {
     }
 }
 
-const readFileInput = (path) => {
-    const data = fs.readFileSync(path, 'utf-8');
-    const arr = data.split('\n');
-    return arr;
-}
 
-const writeFile = async(data, csvf) => {
+const writeFile = async(data, suffix) => {
     try {
         const str = ["Title",
             "Link_Image1",
@@ -208,13 +210,13 @@ const writeFile = async(data, csvf) => {
             "tags",
             "category"
         ].join(",");
-        fs.appendFileSync(`newmoon_import_template_${csvf}.csv`, new Buffer.from(str))
+        fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
         parseAsync(data)
             .then(csv => {
                 const arr = csv.split('\n');
                 arr.shift();
                 const str = '\n' + arr.join('\n');
-                fs.appendFileSync(`newmoon_import_template_${csvf}.csv`, new Buffer.from(str))
+                fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
 
             })
             .catch(err => console.log(err))
@@ -236,4 +238,4 @@ const main = async(input) => {
         console.log(error)
     }
 }
-main(input, csvf);
+main(input);
