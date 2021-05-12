@@ -11,8 +11,8 @@ const readFileInput = (path) => {
     return arr;
 }
 
-const userAgent = readFileInput('./userAgent.txt');
-const proxy = readFileInput('./proxy.txt')
+const userAgent = readFileInput('./useragents.txt');
+const proxy = readFileInput('./proxies.txt')
 
 const crawlerPageCollection = async(link) => {
     try {
