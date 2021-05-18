@@ -1,70 +1,472 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
-<html>
+<html :class="{ 'theme-dark': dark }" x-data="data()" lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title></title>
-    <meta name="description" content="">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="">
-    <!-- CSS only -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-svale=1.0" />
+    <title>Tables - Van Linh</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="./assets/css/tailwind.output.css" />
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+    <script src="./assets/js/init-alpine.js"></script>
 </head>
+<style>
+     :root {
+        --bg-opacity: 0.5 !important;
+        --bg-color: red;
+    }
+    
+    .cac {
+        all: unset;
+        width: 100%;
+    }
+    
+    .disabled {
+        display: none;
+    }
+</style>
 
 <body>
-    <div class="input-group  mt-3 p-2" style="width: 600px;">
-        <input id="input" type="text" class="form-control" placeholder="URL Page" aria-label="URL Page" aria-describedby="button-addon2">
-        <button class="btn btn-outline-secondary" type="button" id="button-addon2">Crawl</button>
-    </div>
-    <div class="output">
+    <div class="flex h-screen bg-gray-50 dark:bg-gray-900" :class="{ 'overflow-hidden': isSideMenuOpen}">
+        <div class="flex flex-col flex-1 w-full">
+            <!--  -->
+            <main class="h-full pb-16 overflow-y-auto">
 
-    </div>
+                <div class="container grid px-6 mx-auto">
+                    <div style="display: flex">
+                        <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">
+                            Tables
+                        </h2>
+                        <button type="button" id="crawl" class=" btn btn-primary m-3 p-2" style="background-color: green; width: 150px; height: 50px; margin: 20px; padding: 5px;">Crawl</button>
+                        <div id="output"></div>
+                    </div>
 
-    <script src="" async defer></script>
-    <!-- JavaScript Bundle with Popper -->
+                    <!-- With actions -->
+                    <div class=" justify-between d-flex">
+                        <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">
+                            Table URL Page
+                        </h4>
+                        <button type="button" id="addUrl" class="btn btn-primary m-3 p-2" style="background-color: lightblue;">Add URL Page</button>
+                    </div>
+                    <div id="inputAddUrl"></div>
+                    <div class="w-full overflow-hidden rounded-lg shadow-xs">
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full whitespace-no-wrap table-bordered">
+                                <thead>
+                                    <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                                        <th class="text-center" scope="col">#</th>
+                                        <th class="text-center" scope="col">URL Page</th>
+                                        <th class="text-center" scope="col">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800" id="urlPage">
+                                    <tr class=" text-gray-700 dark:text-gray-400">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center text-sm">
+                                                <div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
-    <script>
-        const btn = document.querySelector("button");
-        const output = document.querySelector(".output");
-        btn.addEventListener("click", () => {
-            const link = document.getElementById("input").value;
-            console.log(link);
-            output.innerHTML = `<div class="spinner-border" role="status">
-  <span class="visually-hidden">Loading...</span>
-</div>`;
-            axios.post("http://localhost:3000/crawler", {
-                link
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center space-x-4 text-sm  " style="justify-content: center;">
+                                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Edit">
+                            <svg
+                              class="w-5 h-5"
+                              aria-hidden="true"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                              ></path>
+                            </svg>
+                          </button>
+                                                <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
+                            <svg
+                              class="w-5 h-5"
+                              aria-hidden="true"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fill-rule="evenodd"
+                                d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                clip-rule="evenodd"
+                              ></path>
+                            </svg>
+                          </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+
+
+                                </tbody>
+                            </table>
+                            <div id="btnSaveUrl"></div>
+                        </div>
+                        <div class=" justify-between d-flex">
+                            <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">
+                                Table Proxies
+                            </h4>
+                            <button id="btnAddProxy" type="button" class="btn btn-primary m-3 p-2" style="background-color: lightblue;">Add Proxy</button>
+
+                        </div>
+                        <div id="inputAddProxy"></div>
+                        <div class="w-full overflow-hidden rounded-lg shadow-xs">
+
+                            <div class="w-full overflow-x-auto">
+                                <table class="w-full whitespace-no-wrap table-bordered">
+                                    <thead>
+                                        <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                                            <th class="text-center" scope="col">#</th>
+                                            <th class="text-center" scope="col">Proxies</th>
+                                            <th class="text-center" scope="col">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800" id="proxies">
+                                        <tr class=" text-gray-700 dark:text-gray-400">
+                                            <td class="px-4 py-3">
+                                                <div class="flex items-center text-sm">
+                                                    <div>
+
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="flex items-center space-x-4 text-sm  " style="justify-content: center;">
+                                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Edit">
+                                <svg
+                                  class="w-5 h-5"
+                                  aria-hidden="true"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                                  ></path>
+                                </svg>
+                              </button>
+                                                    <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
+                                <svg
+                                  class="w-5 h-5"
+                                  aria-hidden="true"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                  ></path>
+                                </svg>
+                              </button>
+                                </table>
+                                <div id="btnSaveProxies"></div>
+                                </div>
+                                <div class=" justify-between d-flex">
+                                    <h4 class="mb-4 text-lg font-semibold text-gray-600 dark:text-gray-300">
+                                        Table User Agent
+                                    </h4>
+                                    <button id="btnAddUA" type="button" class="btn btn-primary m-3 p-2" style="background-color: lightblue;">Add User Agent</button>
+
+                                </div>
+                                <div id="inputAddUA"></div>
+                                <div class="w-full overflow-hidden rounded-lg shadow-xs">
+
+                                    <div class="w-full overflow-x-auto">
+                                        <table class="w-full whitespace-no-wrap table-bordered">
+                                            <thead>
+                                                <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                                                    <th class="text-center" scope="col">#</th>
+                                                    <th class="text-center" scope="col">User Agent</th>
+                                                    <th class="text-center" scope="col">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800" id="userAgent">
+                                                <tr class=" text-gray-700 dark:text-gray-400">
+                                                    <td class="px-4 py-3">
+                                                        <div class="flex items-center text-sm">
+                                                            <div>
+
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="px-4 py-3">
+                                                        <div class="flex items-center space-x-4 text-sm  " style="justify-content: center;">
+                                                            <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Edit">
+                                        <svg
+                                          class="w-5 h-5"
+                                          aria-hidden="true"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                                          ></path>
+                                        </svg>
+                                      </button>
+                                                            <button class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
+                                        <svg
+                                          class="w-5 h-5"
+                                          aria-hidden="true"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fill-rule="evenodd"
+                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                            clip-rule="evenodd"
+                                          ></path>
+                                        </svg>
+                                      </button>
+                                        </table>
+                                        <div id="btnSaveUA"></div>
+                                        </div>
+                                    </div>
+                                </div>
+            </main>
+            </div>
+            </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js" integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ==" crossorigin="anonymous"></script>
+<script>
+    const btnCrawl = document.getElementById("crawl");
+    const output = document.getElementById("output");
+    const renderRow = (value, index, elem, axi, classs) => {
+        return `<tr class="${classs} text-gray-700 dark:text-gray-400">
+                <td class="px-4 py-3">
+                    <div <p class="indexUrl">${index + 1}</p>
+                    </div>
+                </td>
+                <td class="px-4 py-3">
+                    <div class=" items-center text-sm">
+                        <div id="url-${index}">
+                            <input class="font-semibold cac" value=${value} disabled="true" />
+                        </div>
+                    </div>
+                </td>
+
+                <td class="px-4 py-3">
+                    <div id="actionUrl${index}" class="btnE items-center space-x-4 text-sm flex justify-center">
+                        <button onclick="edit(this,${index}, ${elem}, '${axi}', '${classs}')" class="tdEdit flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Edit">
+                                    <svg
+                                  class="w-5 h-5"
+                                  aria-hidden="true"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"
+                                  ></path>
+                                </svg>
+                              </button>
+                        <button onclick="deleteVal(${index}, ${elem},'${axi}' )" class="flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Delete">
+                                <svg
+                                  class="w-5 h-5"
+                                  aria-hidden="true"
+                                  fill="currentColor"
+                                  viewBox="0 0 20 20"
+                                >
+                                  <path
+                                    fill-rule="evenodd"
+                                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                    clip-rule="evenodd"
+                                  ></path>
+                                </svg>
+                              </button>
+                              <button class="disabled tdEdit flex items-center justify-between px-2 py-2 text-sm font-medium leading-5 text-purple-600 rounded-lg dark:text-gray-400 focus:outline-none focus:shadow-outline-gray" aria-label="Edit">
+                                 Save
+                              </button>
+                    </div>
+                </td>
+            </tr>`
+    }
+    let arrUrl = [];
+    axios.get("http://localhost:3000/getListUrl").then(({
+        data
+    }) => {
+        const tbody = document.getElementById("urlPage");
+        const elem = 'urlPage';
+        const axi = 'Url';
+        if (data.data) {
+            tbody.innerHTML = "";
+            arrUrl = [...data.data];
+            data.data.forEach((url, i, data) => {
+                tbody.innerHTML += renderRow(url, i, elem, axi, "claUrl");
+            })
+        }
+    })
+    let arrProxies = [];
+    axios.get("http://localhost:3000/getListProxies").then(({
+        data
+    }) => {
+        const tbody = document.getElementById("proxies");
+        if (data.data) {
+            tbody.innerHTML = "";
+            arrProxies = [...data.data];
+            data.data.forEach((proxy, i, data) => {
+                tbody.innerHTML += renderRow(proxy, i, 'proxies', 'Proxies', 'claProxies');
+                i++
+            })
+        }
+    })
+    let arrUA = [];
+    axios.get("http://localhost:3000/getListUserAgent").then(({
+        data
+    }) => {
+        console.log(data)
+        const tbody = document.getElementById("userAgent");
+        if (data.data) {
+            tbody.innerHTML = "";
+            arrUA = [...data.data];
+            data.data.forEach((userA, i, data) => {
+                tbody.innerHTML += renderRow(userA, i, 'userAgent', 'UserAgent', 'claUA');
+                i++
+            })
+        }
+    })
+    btnCrawl.addEventListener("click", () => {
+        output.innerHTML = `<div class="spinner-border" role="status">
+            <span class="visually-hidden" style ="color: white">Loading...</span>
+            </div>`;
+        axios.post("http://localhost:3000/crawler").then(({
+            data
+        }) => {
+            console.log(data)
+            const a = document.createElement("a");
+            output.innerHTML = "";
+            const href = 'data:attachment/csv;charset=utf-8,' + encodeURI(data);
+            a.href = href;
+            a.target = '_blank';
+            a.download = 'filename.csv'
+            a.click();
+            a.classList.add("btn");
+            a.classList.add("btn-primary");
+        })
+    });
+    const btnAddUrl = document.getElementById("addUrl");
+    btnAddUrl.addEventListener("click", () => {
+        const inputAddUrl = document.getElementById("inputAddUrl");
+        inputAddUrl.innerHTML = `<div id="inputAdd" style="display: flex; margin: 5px; padding: 5px; width: 150px"> <input id="input" > </input> 
+            <button id = "btnAdd" type="button" class="btn btn-primary m-3 p-2" style="background-color: lightblue;  margin: 5px;">Add</button> </div>`
+        const btnAdd = document.getElementById("btnAdd");
+        btnAdd.addEventListener("click", () => {
+            const url = document.getElementById("input").value.split('\n');
+            axios.post("http://localhost:3000/addUrl", {
+                url
             }).then(({
                 data
-
             }) => {
-                const {
-                    url,
-                    mes
-                } = data;
-                const a = document.createElement("a");
-                output.innerHTML = "";
-                if (url) {
+                document.getElementById("input").value = "";
+                location.reload();
 
-                    a.href = url;
-                    a.innerText = "Download";
-
-                } else {
-                    a.innerText = mes;
-                }
-                a.classList.add("btn");
-                a.classList.add("btn-primary");
-                output.append(a);
             })
-        });
-    </script>
-</body>
+        })
+    })
+    const btnAddProxy = document.getElementById("btnAddProxy");
+    btnAddProxy.addEventListener("click", () => {
+        const inputAdd = document.getElementById("inputAddProxy");
+        inputAdd.innerHTML = `<div id="inputAdd" style="display: flex; margin: 5px; padding: 5px; width: 150px"> <input id="input" > </input> 
+            <button id = "btnAdd" type="button" class="btn btn-primary m-3 p-2" style="background-color: lightblue;  margin: 5px;">Add</button> </div>`
+        const btnAdd = document.getElementById("btnAdd");
+        btnAdd.addEventListener("click", () => {
+            const proxy = document.getElementById("input").value.split('\n');
+            axios.post("http://localhost:3000/addProxy", {
+                proxy
+            }).then(({
+                data
+            }) => {
+                document.getElementById("input").value = "";
+                location.reload();
+
+            })
+        })
+    })
+    const btnAddUA = document.getElementById("btnAddUA");
+    btnAddUA.addEventListener("click", () => {
+        const inputAdd = document.getElementById("inputAddUA");
+        inputAdd.innerHTML = `<div id="inputAdd" style="display: flex; margin: 5px; padding: 5px; width: 150px"> <input id="input" > </input> 
+            <button id = "btnAdd" type="button" class="btn btn-primary m-3 p-2" style="background-color: lightblue;  margin: 5px;">Add</button> </div>`
+        const btnAdd = document.getElementById("btnAdd");
+        btnAdd.addEventListener("click", () => {
+            const userAgent = document.getElementById("input").value.split('\n');
+            axios.post("http://localhost:3000/addUserAgent", {
+                userAgent
+            }).then(({
+                data
+            }) => {
+                document.getElementById("input").value = "";
+                location.reload();
+
+            })
+        })
+    })
+    const edit = (btn, index, elem, axi, classs) => {
+        const urlEl = document.querySelector(`tr.${classs} > td:nth-child(2) > div > #url-${index} > .cac`);
+        urlEl.disabled = false;
+        urlEl.focus();
+        urlEl.style.background = "#111"
+        const btnSave = document.querySelector(`tr.${classs} > td:nth-child(3) > #actionUrl${index} > button:last-child`);
+        btnSave.classList.remove("disabled");
+        btnSave.addEventListener("click", () => {
+            btnSave.classList.add("disabled");
+            urlEl.disabled = true;
+            urlEl.style.background = "transparent";
+            let arr = [];
+            if (axi == "Url") arr = arrUrl;
+            else if (axi == "Proxies") arr = arrProxies;
+            else if (axi == "UserAgent") arr = arrUA;
+            arr = arr.map((url, i) => {
+                if (i === index) {
+                    return urlEl.value;
+                }
+                return url;
+            })
+            const data = arr;
+            console.log(data)
+            axios.put("http://localhost:3000/update" + axi, {
+                data
+            }).then(({
+                data
+            }) => {
+                const tbody = document.getElementById(elem);
+                if (data.data) {
+                    tbody.innerHTML = "";
+                    arrUrl = [...data.data];
+                    data.data.forEach((url, i, data) => {
+                        tbody.innerHTML += renderRow(url, i, data);
+                    })
+                }
+            })
+        })
+    }
+    const deleteVal = (index, elem, axi) => {
+        let arr = [];
+        if (axi == "Url") arr = arrUrl;
+        else if (axi == "Proxies") arr = arrProxies;
+        else if (axi == "UserAgent") arr = arrUA;
+        arr = arr.filter((val, i) => {
+            return index != i
+        })
+        const data = arr;
+        axios.put("http://localhost:3000/update" + axi, {
+            data
+        }).then(({
+            data
+        }) => {
+            const tbody = document.getElementById(elem);
+            if (data.data) {
+                tbody.innerHTML = "";
+                arrUrl = [...data.data];
+                data.data.forEach((val, i, data) => {
+                    tbody.innerHTML += renderRow(val, i, data);
+                })
+
+            }
+        })
+        location.reload();
+    }
+</script>
 
 </html>

@@ -4,22 +4,13 @@ const fs = require("fs");
 const { parseAsync } = require("json2csv");
 const cloudinary = require("cloudinary").v2;
 
-const CLOUDINARY_NAME = "hoanghai"
-const CLOUDINARY_KEY = "522985438516442"
-const CLOUDINARY_SECRET = "cEbI-nGKfoK1gkj8zxGc8gd31bA"
-
-cloudinary.config({
-    cloud_name: CLOUDINARY_NAME,
-    api_key: CLOUDINARY_KEY,
-    api_secret: CLOUDINARY_SECRET,
-});
-
 const express = require('express')
 const app = express()
 const port = 3000
 
 let suffix;
 app.use(express.json());
+app.use(express.static(__dirname));
 app.use(
     express.urlencoded({
         extended: true,
@@ -28,29 +19,113 @@ app.use(
     })
 );
 
-app.get("/", (req, res) => {
-    fs.readFile(__dirname + '/index.html', 'utf8', function(err, text) {
-        res.send(text);
-    });
+app.get('/getListUrl', (req, res) => {
+    try {
+        const data = readFileInput('./input.txt');
+        return res.status(200).json({ data });
+    } catch (error) {
+        console.log(error);
+    }
+})
+app.post('/addUrl', (req, res) => {
+    const { url } = req.body;
+    if (!url)
+        return res.status(200).json({ mes: "Url is not found" })
+    url.forEach(u => {
+        fs.appendFileSync('./input.txt', '\n' + u);
+    })
+    const data = readFileInput('./input.txt');
+    return res.status(200).json({ data })
+})
+
+app.put('/updateUrl', (req, res) => {
+    const { data } = req.body;
+    if (data.length == 0) {
+        return res.status(200).json({ mes: 'Not have data will update' })
+    }
+    fs.writeFileSync('./input.txt', data[0]);
+    for (let i = 1; i < data.length; i++) {
+        fs.appendFileSync('./input.txt', '\n' + data[i]);
+    }
+    return res.status(200).json({ data })
+})
+
+app.get('/getListProxies', (req, res) => {
+    const data = readFileInput('./proxies.txt');
+    return res.status(200).json({ data })
+})
+
+app.post('/addProxy', (req, res) => {
+    const { proxy } = req.body;
+    if (!proxy)
+        return res.status(200).json({ mes: "Proxy is not found" })
+    proxy.forEach(p => {
+        fs.appendFileSync('./proxies.txt', '\n' + p);
+    })
+    const data = readFileInput('./proxies.txt');
+    return res.status(200).json({ data })
+})
+
+app.put('/updateProxies', (req, res) => {
+    const { data } = req.body;
+    if (data.length == 0) {
+        return res.status(200).json({ mes: 'Not have data will update' })
+    }
+    fs.writeFileSync('./proxies.txt', data[0]);
+    for (let i = 1; i < data.length; i++) {
+        fs.appendFileSync('./proxies.txt', '\n' + data[i])
+    }
+    return res.status(200).json({ data })
+})
+
+app.get('/getListUserAgent', (req, res) => {
+    const data = readFileInput('./useragents.txt');
+    return res.status(200).json({ data })
+})
+
+app.post('/addUserAgent', (req, res) => {
+    const { userAgent } = req.body;
+    if (!userAgent)
+        return res.status(200).json({ mes: "user agent is not found" })
+    userAgent.forEach(u => {
+        fs.appendFileSync('./useragents.txt', '\n' + u);
+    })
+
+    const data = readFileInput('./useragents.txt');
+    return res.status(200).json({ data })
+})
+
+app.put('/updateUserAgent', (req, res) => {
+    const { data } = req.body;
+    if (data.length == 0) {
+        return res.status(200).json({ mes: 'Not have data will update' })
+    }
+    fs.writeFileSync('./useragents.txt', data[0]);
+    for (let i = 1; i < data.length; i++) {
+        fs.appendFileSync('./useragents.txt', '\n' + data[i])
+    }
+    return res.status(200).json({ data })
 })
 
 app.post('/crawler', async(req, res) => {
     try {
-        const { link } = req.body;
-        if (link) {
-            suffix = (new Date()).getTime();
-            const arr = link.split("/");
-            if (arr[3] === 'collections') await crawlerPageCollection(link)
-            else if (arr[3] === 'products') await CrawlerProduct(link)
-            else if (arr[3].split('?')[0] === 'search') await crawlerPageSeach(link, res);
-
-            let imgCloudinary = await uploadSingle(`newmoon_import_template_${suffix}.csv`);
-            const url = imgCloudinary.url;
-            res.json({
-                url
+        suffix = new Date().getTime();
+        const input = readFileInput("./input.txt");
+        const arrPromises = []
+        if (input.length > 0) {
+            input.forEach((link) => {
+                const arr = link.split("/");
+                if (arr[3] === 'collections') arrPromises.push(crawlerPageCollection(link))
+                else if (arr[3] === 'products') arrPromises.push(CrawlerProduct(link))
+                else if (arr[3].split('?')[0] === 'search') arrPromises.push(crawlerPageSeach(link))
+            })
+            console.log(arrPromises)
+            Promise.all(arrPromises).then(result => {
+                setTimeout(() => {
+                    res.sendFile(`newmoon_import_template_${suffix}.csv`, { root: __dirname })
+                }, 0)
             })
         } else
-
             res.status(200).json({ mes: "Link is not found" });
     } catch (error) {
         console.log(error)
@@ -149,11 +224,6 @@ const crawlerPageSeach = async(link, res) => {
                             const Title = $(el)
                                 .find("div.product-item__info div.product-item__info-inner a.product-item__title")
                                 .text();
-                            // const Link_Image1 =
-                            //     "http:" +
-                            //     $(el).find("div.product_image a div.image__container img").data().src;
-                            // const Link_Image2 = "http:" +
-                            //     ($(el).find(" div.product_image a div.image__container img.secondary")).get().map((pro) => { return pro.attribs.src });
                             let Link =
                                 urlInput.split('/search')[0] +
                                 $(el)
@@ -246,32 +316,7 @@ const CrawlerProduct = async(link) => {
     }
 }
 
-const uploadSingle = (file) => {
-    return new Promise((resolve, rejects) => {
-        cloudinary.uploader
-            .upload(
-                file, {
-                    folder: "newMoon",
-                    resource_type: "auto"
-                },
-                (error, result) => {
-                    if (error) {
-                        rejects(error);
-                    }
-                    if (result) {
-                        console.log("upload successful");
-                        console.log(result.secure_url);
-                        resolve({
-                            url: result.secure_url,
-                        });
-                    }
-                }
-            )
-    });
-}
-
-
-const writeFile = async(data, suffix) => {
+const writeFile = (data, suffix) => {
     try {
         const str = ["Title",
             "Link_Image1",
@@ -285,36 +330,35 @@ const writeFile = async(data, suffix) => {
             "category"
         ].join(",");
         fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
-        parseAsync(data)
+        return parseAsync(data)
             .then(csv => {
                 const arr = csv.split('\n');
                 arr.shift();
                 const str = '\n' + arr.join('\n');
                 fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
-
             })
             .catch(err => console.log(err))
-
     } catch (error) {
         console.log(error)
     }
 
 }
-const input = readFileInput("./input.txt");
-const main = (link) => {
-        try {
+
+const main = async(input) => {
+    try {
+        await input.forEach((link) => {
             const arr = link.split("/");
-            if (arr[3] === 'collections') return crawlerPageCollection(link)
-            else if (arr[3] === 'products') return CrawlerProduct(link)
-            else if (arr[3].split('?')[0] === 'search') return crawlerPageSeach(link);
-        } catch (error) {
-            console.log(error)
-        }
+            if (arr[3] === 'collections') crawlerPageCollection(link)
+            else if (arr[3] === 'products') CrawlerProduct(link)
+            else if (arr[3].split('?')[0] === 'search') crawlerPageSeach(link);
+        })
+
+    } catch (error) {
+        console.log(error)
     }
-    //main(input);
+}
 
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
-    // crawlerPageSeach("https://99shirt.com/search?q=shirt");
 })
