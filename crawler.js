@@ -40,9 +40,8 @@ app.post('/addUrl', (req, res) => {
 
 app.put('/updateUrl', (req, res) => {
     const { data } = req.body;
-    if (data.length == 0) {
-        return res.status(200).json({ mes: 'Not have data will update' })
-    }
+    console.log(data.length == 0)
+    if (data.length == 0) fs.writeFileSync('./input.txt', data.toString());
     fs.writeFileSync('./input.txt', data[0]);
     for (let i = 1; i < data.length; i++) {
         fs.appendFileSync('./input.txt', '\n' + data[i]);
@@ -68,13 +67,12 @@ app.post('/addProxy', (req, res) => {
 
 app.put('/updateProxies', (req, res) => {
     const { data } = req.body;
-    if (data.length == 0) {
-        return res.status(200).json({ mes: 'Not have data will update' })
-    }
+    if (data.length == 0) fs.writeFileSync('./proxies.txt', data);
     fs.writeFileSync('./proxies.txt', data[0]);
     for (let i = 1; i < data.length; i++) {
         fs.appendFileSync('./proxies.txt', '\n' + data[i])
     }
+    console.log(data)
     return res.status(200).json({ data })
 })
 
@@ -97,9 +95,7 @@ app.post('/addUserAgent', (req, res) => {
 
 app.put('/updateUserAgent', (req, res) => {
     const { data } = req.body;
-    if (data.length == 0) {
-        return res.status(200).json({ mes: 'Not have data will update' })
-    }
+    if (data.length == 0) fs.writeFileSync('./useragents.txt', data);
     fs.writeFileSync('./useragents.txt', data[0]);
     for (let i = 1; i < data.length; i++) {
         fs.appendFileSync('./useragents.txt', '\n' + data[i])
@@ -115,11 +111,10 @@ app.post('/crawler', async(req, res) => {
         if (input.length > 0) {
             input.forEach((link) => {
                 const arr = link.split("/");
-                if (arr[3] === 'collections') arrPromises.push(crawlerPageCollection(link))
-                else if (arr[3] === 'products') arrPromises.push(CrawlerProduct(link))
+                if (arr.indexOf('products') >= 0) arrPromises.push(CrawlerProduct(link))
+                else if (arr[3] === 'collections') arrPromises.push(crawlerPageCollection(link))
                 else if (arr[3].split('?')[0] === 'search') arrPromises.push(crawlerPageSeach(link))
             })
-            console.log(arrPromises)
             Promise.all(arrPromises).then(result => {
                 setTimeout(() => {
                     res.sendFile(`newmoon_import_template_${suffix}.csv`, { root: __dirname })
