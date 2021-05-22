@@ -106,6 +106,18 @@ app.put('/updateUserAgent', (req, res) => {
 app.post('/crawler', async(req, res) => {
     try {
         suffix = new Date().getTime();
+        const str = ["Title",
+            "Link_Image1",
+            "Link_Image2",
+            "Link_Image3",
+            "Link_Image4",
+            "SKU",
+            "Link",
+            "mmolazi_type",
+            "tags",
+            "category"
+        ].join(",");
+        fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str));
         const input = readFileInput("./input.txt");
         const arrPromises = []
         if (input.length > 0) {
@@ -179,7 +191,7 @@ const crawlerPageCollection = async(link) => {
                             obj.Link_Image2 = product.images[1] ? product.images[1].src : '';
                             obj.Link_Image3 = product.images[2] ? product.images[2].src : '';
                             obj.Link_Image4 = product.images[3] ? product.images[3].src : '';
-                            obj.Link = link + `/products/ ${product.handle}`;
+                            obj.Link = link + `/products/${product.handle}`;
                             obj.tags = product.tags + "";
                             data.push(obj);
                         }
@@ -297,7 +309,7 @@ const CrawlerProduct = async(link) => {
                     obj.Link_Image2 = product.images[1] ? product.images[1].src : '';
                     obj.Link_Image3 = product.images[2] ? product.images[2].src : '';
                     obj.Link_Image4 = product.images[3] ? product.images[3].src : '';
-                    obj.Link = link + `/products/ ${product.handle}`;
+                    obj.Link = link + `/products/${product.handle}`;
                     obj.tags = product.tags + "";
                     data.push(obj);
                     console.log(`Crawling page: ${link}`);
@@ -313,24 +325,15 @@ const CrawlerProduct = async(link) => {
 
 const writeFile = (data, suffix) => {
     try {
-        const str = ["Title",
-            "Link_Image1",
-            "Link_Image2",
-            "Link_Image3",
-            "Link_Image4",
-            "SKU",
-            "Link",
-            "mmolazi_type",
-            "tags",
-            "category"
-        ].join(",");
-        fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
-        return parseAsync(data)
+        parseAsync(data)
             .then(csv => {
                 const arr = csv.split('\n');
                 arr.shift();
-                const str = '\n' + arr.join('\n');
-                fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, new Buffer.from(str))
+                let str = '\n' + arr.map(val => {
+                    return val.split('","').join(',').replace('"', '').substring(0, val.length - 1);
+                }).join('\n');
+                console.log(str);
+                fs.appendFileSync(`newmoon_import_template_${suffix}.csv`, str)
             })
             .catch(err => console.log(err))
     } catch (error) {
